@@ -1,23 +1,72 @@
 const express = require('express')
 const { PrismaClient } = require("@prisma/client")
 const prisma = new PrismaClient()
+const bcrypt = require("bcryptjs")
 
 const userController = {
+    login: async (req, res) => {
+        const { email, senha } = req.body;
+ 
+        if (!email || !senha) {
+            return res.status(400).json({
+                msg: 'Campos inválidos'
+            })
+        }
+        
+        // SELECT * FROM User WHERE email = email;
+        const userEncontrado = await user.findAll({
+            where: {
+                email
+            }
+        });
+
+        if (!userEncontrado) {
+            return res.status(403).json({
+                msg: "E-mail ou senha incorretos"
+            })                                                                                                                                                                                              
+        }
+
+        const isCerto = await bcrypt.compare(senha, userEncontrado.senha);
+
+        if(!isCerto) {
+            return res.status(401).json({
+                msg: "E-mail ou senha incorretos"
+            })
+        }
+
+        return res.status(200).json({
+            msg: "Usuario autenticado com sucesso!"
+        })
+        
+    },
     create: async (req, res) => {
         try {
-            const { nome, email, senha } = req.body
-
-            const userCriado = await prisma.user.create({ data:{ nome, email, senha }})
-
-            return res.status(200).json({
-                msg: 'O usuario foi criado com sucesso',
+            const { nome, email, senha } = req.body;
+ 
+            if (!nome || !email || !senha) {
+                return res.status(400).json({
+                    msg: "All fields are required"
+                })
+            }
+ 
+            // Senha criptografada
+            const hashSenha = await bcrypt.hash(senha, 10)
+ 
+            const userCriado = await prisma.user.create({
+                data: {
+                    nome, email, senha: hashSenha
+                }
+            })
+ 
+            return res.status(201).json({
+                msg: "Usuario criado com sucesso",
                 userCriado
             })
-
+ 
         } catch (error) {
             console.log(error)
             return res.status(500).json({
-                msg: 'Ocorreu um erro ao acessar a api'
+                msg: "Erro interno",
             })
         }
     },
