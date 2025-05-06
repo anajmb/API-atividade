@@ -3,6 +3,9 @@ const { PrismaClient } = require("@prisma/client")
 const prisma = new PrismaClient()
 const bcrypt = require("bcryptjs")
 
+// JWT -> Token aplicação web
+const jwt = require("jsonwebtoken"); // Importando o jsonwebtoken
+
 const userController = {
     login: async (req, res) => {
         const { email, senha } = req.body;
@@ -34,7 +37,25 @@ const userController = {
             })
         }
 
+        // payload -> Conteúdo de dentro do JWT
+        // somente o necessário para a aplicação
+        const payload = {
+            id: userEncontrado.id,
+            email: userEncontrado.email,
+        } 
+
+        // token vai sobreviver por 1h
+        // palavra secreta -> maça-do-amor
+        // fytrytjdtkfdihí0´76e3yghjkbuyj 
+
+        // annypotternasceu -> base64
+
+        const token = jwt.sign(payload, "maça-do-amor", {
+            expiresIn: "1h"
+        });
+
         return res.status(200).json({
+            token,
             msg: "Usuario autenticado com sucesso!"
         })
         
