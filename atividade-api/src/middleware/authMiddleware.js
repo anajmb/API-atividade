@@ -12,4 +12,13 @@ export function authenticate(req, res, next) {
 
     const [bearer, token]= authHeader.split(" ");
 
+    try {
+        req.user = jwt.verify(token, "maça-do-amor");
+        // caso o token seja válido
+        return next();
+    } catch (error) {
+        return res.status(401).json({
+            msg: "Token inválido ou expirado"
+        })
+    }
 }
